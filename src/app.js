@@ -16,7 +16,6 @@ app.use(
   })
 );
 app.use(express.json());
-app.use(express.static("src/html"));
 app.use("/api/v1", authRoutes);
 app.use("/api/v1", messageRoutes);
 
