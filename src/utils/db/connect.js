@@ -1,14 +1,27 @@
 const { Sequelize } = require("sequelize");
+const readYaml = require("../../utils/yaml/read-file");
+require("dotenv").config();
 
-const sequelize = new Sequelize("demodatabase", "admin", "password", {
-  host: "localhost",
-  dialect: "postgres",
-});
+const DB_NAME = process.env.DB_NAME;
+const DB_USER = process.env.DB_USER;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+
+let sequelize;
+
+function initSequelize() {
+  console.log("initializing database...");
+  const config = readYaml();
+  sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, config.sequelize);
+}
+
+initSequelize();
 
 async function connectToDB() {
+  console.log("connecting to the database...");
   try {
+    console.log("authenticating...");
     await sequelize.authenticate();
-    console.log("connection has been established successfully.");
+    console.log("database connected successfully.");
   } catch (error) {
     console.error("unable to connect to the database: ", error);
   }

@@ -2,7 +2,7 @@ const { ChatMessage, User } = require("../models");
 
 const getAllMessages = async (req, res) => {
   try {
-    const data = [];
+    const messages = [];
     const foundMessage = await ChatMessage.findAll({
       include: { model: User, attributes: ["id", "username", "color"] },
     });
@@ -14,9 +14,9 @@ const getAllMessages = async (req, res) => {
         createdAt: e.createdAt,
         updatedAt: e.updatedAt,
       };
-      data.push(populatedMessage);
+      messages.push(populatedMessage);
     });
-    res.json(data);
+    res.json(messages);
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "failed to fetch messages." });

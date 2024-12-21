@@ -1,9 +1,8 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
+const { generateToken } = require("../utils/jwt/token");
 require("dotenv").config();
-
-const SECRET_KEY = process.env.SECRET_KEY;
 
 const register = async (req, res) => {
   const { username, password, color } = req.body;
@@ -31,19 +30,16 @@ const login = async (req, res) => {
       return res.status(404).json({ message: "user not found." });
     }
 
-    // const isPasswordValid = password == user.password;
     const isPasswordValid = bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "invalid credentials." });
     }
 
-    const token = jwt.sign(
-      { id: user.id, username: user.username, color: user.color },
-      SECRET_KEY,
-      {
-        expiresIn: "1h",
-      }
-    );
+    const token = generateToken({
+      id: user.id,
+      username: user.username,
+      color: user.color,
+    });
 
     res.status(200).json({ token });
   } catch (error) {

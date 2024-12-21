@@ -1,0 +1,22 @@
+cors:
+  origin:
+    - http://127.0.0.1:4200
+    - http://192.168.10.103:4200
+  methods: ["GET", "POST", "PUT", "DELETE"]
+  allowedHeaders:
+    - "Content-Type"
+    - "Authorization"
+  credentials: true
+nms:
+  rtmp:
+    port: 1935
+    chunk_size: 60000
+    gop_cache: true
+    ping: 30
+    ping_timeout: 60
+  http:
+    port: 8000
+    allow_origin: "*"
+sequelize:
+  host: "localhost"
+  dialect: "postgres"
