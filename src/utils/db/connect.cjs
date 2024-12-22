@@ -1,5 +1,5 @@
 const { Sequelize } = require("sequelize");
-const readYaml = require("../../utils/yaml/read-file");
+const readYaml = require("../yaml/read-file.cjs");
 require("dotenv").config();
 
 const DB_NAME = process.env.DB_NAME;

@@ -1,8 +1,10 @@
 {
   "name": "chat-demo-backend",
   "version": "1.0.0",
-  "main": "server.js",
+  "main": "index.js",
+  "type": "module",
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon server.js"
   },
@@ -27,6 +29,14 @@
     "yaml": "^2.6.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "@types/node-media-server": "^2.3.7",
+    "@types/pg": "^8.11.10",
+    "@types/sequelize": "^4.28.20",
+    "nodemon": "^3.1.9",
+    "ts-node": "^10.9.2",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.2"
   }
 }

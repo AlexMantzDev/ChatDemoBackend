@@ -3,6 +3,6 @@ const Router = express.Router();
 const { getAllMessages } = require("../controllers/messages.controller");
 const { authenticate } = require("../middleware/auth.middleware");
 
-Router.get("/messages", authenticate, getAllMessages);
+Router.get("/", authenticate, getAllMessages);
 
 module.exports = Router;

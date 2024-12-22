@@ -1,4 +1,4 @@
-const { ChatMessage, User } = require("../models");
+const { ChatMessage, User } = require("../models/index.cjs");
 
 const getAllMessages = async (req, res) => {
   try {
