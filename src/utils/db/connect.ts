@@ -1,12 +1,12 @@
-const { Sequelize } = require("sequelize");
-const readYaml = require("../yaml/read-file.cjs");
+import { Sequelize } from "sequelize";
+import readYaml from "../yaml/read-file";
 require("dotenv").config();
 
-const DB_NAME = process.env.DB_NAME;
-const DB_USER = process.env.DB_USER;
-const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_NAME = process.env.DB_NAME ?? "";
+const DB_USER = process.env.DB_USER ?? "";
+const DB_PASSWORD = process.env.DB_PASSWORD ?? "";
 
-let sequelize;
+export let sequelize: Sequelize;
 
 function initSequelize() {
   console.log("initializing database...");
@@ -16,7 +16,7 @@ function initSequelize() {
 
 initSequelize();
 
-async function connectToDB() {
+export async function connectToDB() {
   console.log("connecting to the database...");
   try {
     console.log("authenticating...");
@@ -26,5 +26,3 @@ async function connectToDB() {
     console.error("unable to connect to the database: ", error);
   }
 }
-
-module.exports = { connectToDB, sequelize };

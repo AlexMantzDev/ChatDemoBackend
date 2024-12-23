@@ -1,13 +1,14 @@
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const User = require("../models/User.cjs");
-const { generateToken } = require("../utils/jwt/token.cjs");
+import { hash, compare } from "bcrypt";
+import User from "../models/User";
+import { generateToken } from "../utils/jwt/token";
+import { Request, Response } from "express";
+import { BuildOptions, Model } from "sequelize";
 require("dotenv").config();
 
-const register = async (req, res) => {
+export const register = async (req: Request, res: Response): Promise<void> => {
   const { username, password, color } = req.body;
   try {
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await hash(password, 10);
     const newUser = await User.create({
       username,
       password: hashedPassword,
@@ -16,23 +17,27 @@ const register = async (req, res) => {
     res
       .status(201)
       .json({ message: "user registered successfully.", user: newUser });
+    return;
   } catch (error) {
     console.error(error);
     res.status(400).json("an error occurred during registration.");
+    return;
   }
 };
 
-const login = async (req, res) => {
+export const login = async (req: Request, res: Response): Promise<void> => {
   const { username, password } = req.body;
   try {
     const user = await User.findOne({ where: { username } });
     if (!user) {
-      return res.status(404).json({ message: "user not found." });
+      res.status(404).json({ message: "user not found." });
+      return;
     }
 
-    const isPasswordValid = bcrypt.compare(password, user.password);
+    const isPasswordValid = compare(password, user.password);
     if (!isPasswordValid) {
-      return res.status(401).json({ message: "invalid credentials." });
+      res.status(401).json({ message: "invalid credentials." });
+      return;
     }
 
     const token = generateToken({
@@ -42,10 +47,10 @@ const login = async (req, res) => {
     });
 
     res.status(200).json({ token });
+    return;
   } catch (error) {
     console.error(error);
     res.status(401).json({ message: "an error occurred during login." });
+    return;
   }
 };
-
-module.exports = { register, login };

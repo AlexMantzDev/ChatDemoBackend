@@ -1,13 +1,18 @@
-const { ChatMessage, User } = require("../models/index.cjs");
+import { Request, Response } from "express";
+import { ChatMessage, User } from "../models/index";
+import IGetUserAuthInfoRequest from "../interfaces/IGetUserAuthInfoRequest";
 
-const getAllMessages = async (req, res) => {
+export const getAllMessages = async (
+  req: IGetUserAuthInfoRequest,
+  res: Response
+) => {
   try {
-    const messages = [];
+    const messages: any[] = [];
     const foundMessage = await ChatMessage.findAll({
       include: { model: User, attributes: ["id", "username", "color"] },
     });
-    foundMessage.forEach((e) => {
-      populatedMessage = {
+    foundMessage.forEach((e: any) => {
+      const populatedMessage = {
         id: e.id,
         User: e.User,
         message: e.message,
@@ -22,5 +27,3 @@ const getAllMessages = async (req, res) => {
     res.status(500).json({ error: "failed to fetch messages." });
   }
 };
-
-module.exports = { getAllMessages };

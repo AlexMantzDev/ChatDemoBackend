@@ -1,9 +1,10 @@
 import { createServer, Server } from "http";
-import expressInstance from "./express.js";
+import expressInstance from "./express";
+import { Application } from "express";
 
 export class HttpServerInstance {
   private _http: Server;
-  constructor(express) {
+  constructor(express: Application) {
     this._http = createServer(express);
   }
 

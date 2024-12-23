@@ -2,8 +2,25 @@ import { Server as SocketServer } from "socket.io";
 import { Server } from "http";
 
 import httpServerInstance from "./http.js";
-import { User, ChatMessage } from "./models/index.cjs";
-import readYaml from "./utils/yaml/read-file.cjs";
+import { User, ChatMessage } from "./models/index";
+import readYaml from "./utils/yaml/read-file";
+
+import { ChatMessageAttributes } from "./models/ChatMessage.js";
+import { UserAttributes } from "./models/User.js";
+
+interface RawChatMessage extends ChatMessageAttributes {
+  user?: UserAttributes;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface CleanChatMessage {
+  id: number;
+  User?: UserAttributes;
+  message: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export class SocketIoInstance {
   private _io: SocketServer;
@@ -30,7 +47,11 @@ export class SocketIoInstance {
         const options = {
           include: { model: User, attributes: ["id", "username", "color"] },
         };
-        const foundMessage = await ChatMessage.findByPk(newMessage.id, options);
+        const foundMessage: RawChatMessage | null = await ChatMessage.findByPk(
+          newMessage.id,
+          options
+        );
+        if (!foundMessage) return;
         const cleanMessage = this.messageCleaner(foundMessage);
         this._io.emit("newMessage", cleanMessage);
       });
@@ -41,10 +62,10 @@ export class SocketIoInstance {
     });
   }
 
-  private messageCleaner(rawMessage) {
+  private messageCleaner(rawMessage: RawChatMessage): CleanChatMessage {
     return {
       id: rawMessage.id,
-      User: rawMessage.User,
+      User: rawMessage.user,
       message: rawMessage.message,
       createdAt: rawMessage.createdAt,
       updatedAt: rawMessage.updatedAt,

@@ -1,20 +1,19 @@
-import { connectToDB, sequelize } from "./utils/db/connect.js";
 import { Server } from "http";
-import os from "os";
 
-import httpServerInstance from "./http.js";
-import nodeMediaServerInstance from "./nms.js";
+import { connectToDB, sequelize } from "./utils/db/connect";
+import httpServerInstance from "./http";
+import nodeMediaServerInstance from "./nms";
 require("dotenv").config();
 
 class Main {
   private _EXPRESS_PORT: string;
   private _http: Server;
-  private _nms;
+  private _nms: any;
 
-  constructor(http, nms) {
+  constructor(http: Server) {
     this._http = http;
-    this._nms = nms;
-    this.EXPRESS_PORT = process.env.EXPRESS_PORT;
+    this._nms = nodeMediaServerInstance.nms;
+    this._EXPRESS_PORT = process.env.EXPRESS_PORT ?? "";
   }
 
   public get EXPRESS_PORT(): string {
@@ -25,26 +24,10 @@ class Main {
     this._EXPRESS_PORT = value;
   }
 
-  private serverInit(port, address) {
-    this._http.listen(port, address, () => {
-      console.log(`server listening on http://${address}:${port}...`);
+  private serverInit(port: string) {
+    this._http.listen(port, () => {
+      console.log(`server listening on http://localhost:${port}...`);
     });
-  }
-
-  private getLocalIPAddress() {
-    try {
-      const interfaces = os.networkInterfaces();
-      for (const name of Object.keys(interfaces)) {
-        for (const iface of interfaces[name]) {
-          // Skip internal (127.0.0.1) and non-IPv4 addresses
-          if (iface.family === "IPv4" && !iface.internal) {
-            return iface.address;
-          }
-        }
-      }
-    } catch (error) {
-      console.error(error);
-    }
   }
 
   public async main() {
@@ -54,16 +37,15 @@ class Main {
       console.log("sychronizing database tables...");
       await sequelize.sync();
       console.log("tables synchronized.");
-
+      console.log("initializing Express server...");
       console.log("starting Node-Media-Server...");
       this._nms.run();
-      console.log("initializing Express server...");
-      this.serverInit(this.EXPRESS_PORT, this.getLocalIPAddress());
+      this.serverInit(this.EXPRESS_PORT);
     } catch (error) {
       console.log(error);
     }
   }
 }
 
-const server = new Main(httpServerInstance.http, nodeMediaServerInstance.nms);
+const server = new Main(httpServerInstance.http);
 server.main();

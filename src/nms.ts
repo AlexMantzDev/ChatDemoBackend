@@ -1,80 +1,59 @@
+import NodeMediaServer from "node-media-server";
+import readYaml from "./utils/yaml/read-file";
+import ffmpeg from "fluent-ffmpeg";
+import ffmpegPath from "ffmpeg-static";
+import path from "path";
+import moment from "moment";
 import { Server } from "http";
-import httpServerInstance from "./http.js";
+import httpServerInstance from "./http";
 
-const fs = require("fs");
-const NodeMediaServer = require("node-media-server");
-const ffmpegPath = require("ffmpeg-static");
-const path = require("path");
-const ffmpeg = require("fluent-ffmpeg");
-const moment = require("moment");
-const readYaml = require("./utils/yaml/read-file");
-require("dotenv").config();
-
-export class NodeMediaServerInstance {
-  private _inputURL: string;
-  private _nms: typeof NodeMediaServer;
+class NodeMediaServerInstance {
   private _http: Server;
+  private _inputURL: string;
+  private _nmsConfig: any;
+  private _nms: any;
 
   constructor(http: Server, inputURL: string) {
-    this._inputURL = inputURL;
     this._http = http;
-    this.checkDirectories();
+    this._inputURL = inputURL;
+    this._nmsConfig = this.loadNmsConfig();
+    this._nms = new NodeMediaServer(this._nmsConfig);
     this.nmsInit();
-    this._nms = new NodeMediaServer(this.loadConfig());
   }
 
-  public get inputURL(): string {
-    return this._inputURL;
-  }
-
-  public set inputURL(value: string) {
-    this._inputURL = value;
-  }
-
-  public get nms() {
+  public get nms(): any {
     return this._nms;
   }
 
-  public set nms(value) {
+  public set nms(value: any) {
     this._nms = value;
   }
-
-  public checkDirectories(): void {
-    if (!fs.existsSync("/live/")) {
-      fs.mkdirSync("/live/");
-    }
-
-    if (!fs.existsSync("/videos/")) {
-      fs.mkdirSync("/videos/");
-    }
-  }
-
-  public loadConfig(): any {
-    let config = readYaml();
-    config = config.nms;
+  private loadNmsConfig() {
+    const config = readYaml();
     config.server = this._http;
     if (!config.nms)
-      throw new Error("CORS configuration is missing from YAML config.");
-    return config;
+      throw new Error("NMS configuration is missing from YAML config.");
+    return config.nms;
   }
 
   public nmsInit(): void {
-    this._nms.on("postPublish", (id, streamPath: string, args) => {
+    this._nms.on("postPublish", (_id: any, streamPath: string, _args: any) => {
+      console.log("post publish triggered for stream path: ", streamPath);
       if (streamPath.endsWith("test")) this.saveStream();
     });
 
     this._nms.on("end", () => {
-      this.convertHLSToMP4("/live/", "/videos/");
+      this.convertHLSToMP4("./live/", "./videos/");
     });
   }
-
   public saveStream() {
     const epochTime = moment().format("HH_mm_ss");
-    const outputFilename = `${"/live/"}${epochTime}.m3u8`;
+    const outputFilename = `${"./live/"}${epochTime}.m3u8`;
     ffmpeg(this._inputURL)
+      .setFfmpegPath(ffmpegPath as string)
       .inputFormat("flv")
       .outputOptions([
-        "-hls_time 25",
+        "-hls_time 5",
         "-hls_list_size 10",
         "-hls_flags delete_segments",
         "-f hls",

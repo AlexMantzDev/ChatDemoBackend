@@ -1,9 +1,9 @@
 import express, { Application } from "express";
 import cors from "cors";
 
-import authRoutes from "./routes/auth.routes.cjs";
-import messageRoutes from "./routes/messages.routes.cjs";
-import readYaml from "./utils/yaml/read-file.cjs";
+import authRoutes from "./routes/auth.routes";
+import messagesRoutes from "./routes/messages.routes";
+import readYaml from "./utils/yaml/read-file";
 
 require("dotenv").config();
 
@@ -14,6 +14,7 @@ export class ExpressInstance {
   constructor() {
     this._corsConfig = this.loadCorsConfig();
     this._app = express();
+    this.initialize();
   }
 
   public get app(): Application {
@@ -24,7 +25,7 @@ export class ExpressInstance {
     this._app = value;
   }
 
-  public loadCorsConfig(): any {
+  private loadCorsConfig(): any {
     const config = readYaml();
     if (!config.cors)
       throw new Error("CORS configuration is missing from YAML config.");
@@ -33,13 +34,12 @@ export class ExpressInstance {
 
   public initialize(): void {
     // Middleware
-    this._app.use(cors(this._corsConfig.cors));
+    this._app.use(cors(this._corsConfig));
     this._app.use(express.json());
 
     // Routes
     this._app.use("/api/v1/auth", authRoutes);
-    this._app.use("/api/v1/messages", messageRoutes);
-
+    this._app.use("/api/v1/messages", messagesRoutes);
     // Error handling middleware
     this._app.use(this.errorHandler);
   }
