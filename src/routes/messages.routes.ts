@@ -2,8 +2,8 @@ import express from "express";
 import { getAllMessages } from "../controllers/messages.controller";
 import { authenticate } from "../middleware/auth.middleware";
 
-const router = express.Router();
+const Router = express.Router();
 
-router.get("/", authenticate, getAllMessages);
+Router.get("/", authenticate, getAllMessages);
 
-export default router;
+export default Router;

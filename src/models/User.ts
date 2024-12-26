@@ -6,6 +6,7 @@ export interface UserAttributes {
   username: string;
   password: string;
   color: string;
+  streamKey: string | null;
 }
 
 interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
@@ -18,6 +19,7 @@ class User
   public username!: string;
   public password!: string;
   public color!: string;
+  public streamKey!: string | null;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -42,6 +44,11 @@ User.init(
     color: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    streamKey: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: null,
     },
   },
   {

@@ -4,6 +4,7 @@ import cors from "cors";
 import authRoutes from "./routes/auth.routes";
 import messagesRoutes from "./routes/messages.routes";
 import readYaml from "./utils/yaml/read-file";
+import streamKeyRoutes from "./routes/users.routes";
 
 require("dotenv").config();
 
@@ -40,6 +41,7 @@ export class ExpressInstance {
     // Routes
     this._app.use("/api/v1/auth", authRoutes);
     this._app.use("/api/v1/messages", messagesRoutes);
+    this._app.use("/api/v1/stream-key", streamKeyRoutes);
     // Error handling middleware
     this._app.use(this.errorHandler);
   }
