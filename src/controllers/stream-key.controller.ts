@@ -1,9 +1,10 @@
-import { User } from "../models";
-import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
 import { Response } from "express";
-import IGetUserAuthInfoRequest from "../interfaces/IGetUserAuthInfoRequest";
 import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
+
+import { User } from "../models/index";
+import IGetUserAuthInfoRequest from "../interfaces/IGetUserAuthInfoRequest";
 
 export const createStreamKey = async (
   req: IGetUserAuthInfoRequest,

@@ -13,8 +13,8 @@ class NodeMediaServerInstance {
   private _nmsConfig: any;
   private _nms: any;
 
-  constructor(http: Server, inputURL: string) {
-    this._http = http;
+  constructor(inputURL: string) {
+    this._http = httpServerInstance.http;
     this._inputURL = inputURL;
     this._nmsConfig = this.loadNmsConfig();
     this._nms = new NodeMediaServer(this._nmsConfig);
@@ -25,9 +25,6 @@ class NodeMediaServerInstance {
     return this._nms;
   }
 
-  public set nms(value: any) {
-    this._nms = value;
-  }
   private loadNmsConfig() {
     const config = readYaml();
     config.server = this._http;
@@ -37,6 +34,8 @@ class NodeMediaServerInstance {
   }
 
   public nmsInit(): void {
+    console.log("starting Node-Media-Server...");
+
     this._nms.on("postPublish", (_id: any, streamPath: string, _args: any) => {
       console.log("post publish triggered for stream path: ", streamPath);
       if (streamPath.endsWith("test")) this.saveStream();
@@ -91,10 +90,13 @@ class NodeMediaServerInstance {
       })
       .run();
   }
+
+  public run() {
+    this._nms.run();
+  }
 }
 
 const nodeMediaServerInstance = new NodeMediaServerInstance(
-  httpServerInstance.http,
   "rtmp://127.0.0.1/live/test"
 );
 export default nodeMediaServerInstance;

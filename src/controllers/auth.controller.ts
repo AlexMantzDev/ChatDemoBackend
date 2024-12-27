@@ -1,9 +1,14 @@
 import { hash, compare } from "bcrypt";
-import User from "../models/User";
-import { generateToken } from "../utils/jwt/token";
 import { Request, Response } from "express";
-import { BuildOptions, Model } from "sequelize";
+
+import { User } from "../models/";
+import { generateToken } from "../utils/jwt/token";
 require("dotenv").config();
+
+type Environment = "development" | "production";
+
+const NODE_ENV: Environment =
+  (process.env.NODE_ENV as Environment) || "production";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   const { username, password, color } = req.body;
@@ -34,7 +39,13 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const isPasswordValid = compare(password, user.password);
+    let isPasswordValid: boolean = false;
+    if (NODE_ENV === "development") {
+      isPasswordValid = password == user.password;
+    } else if (NODE_ENV === "production") {
+      isPasswordValid = await compare(password, user.password);
+    }
+
     if (!isPasswordValid) {
       res.status(401).json({ message: "invalid credentials." });
       return;

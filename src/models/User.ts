@@ -1,60 +1,40 @@
-import { DataTypes, Model, Optional } from "sequelize";
-import { sequelize } from "../utils/db/connect";
+import { DataTypes, Model } from "sequelize";
+import sequelizeInstance from "../sequelize";
 
-export interface UserAttributes {
+const sequelize = sequelizeInstance.sequelize;
+
+interface UserModel extends Model {
   id: number;
   username: string;
   password: string;
   color: string;
-  streamKey: string | null;
+  streamKey: string;
 }
 
-interface UserCreationAttributes extends Optional<UserAttributes, "id"> {}
-
-class User
-  extends Model<UserAttributes, UserCreationAttributes>
-  implements UserAttributes
-{
-  public id!: number;
-  public username!: string;
-  public password!: string;
-  public color!: string;
-  public streamKey!: string | null;
-
-  public readonly createdAt!: Date;
-  public readonly updatedAt!: Date;
-}
-
-User.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-    },
-    username: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    color: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    streamKey: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: null,
-    },
+const User = sequelize.define<UserModel>("User", {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
   },
-  {
-    sequelize,
-    modelName: "User",
-  }
-);
+  username: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    unique: true,
+  },
+  password: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  color: {
+    type: DataTypes.STRING,
+    allowNull: false,
+  },
+  streamKey: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    defaultValue: null,
+  },
+});
 
 export default User;

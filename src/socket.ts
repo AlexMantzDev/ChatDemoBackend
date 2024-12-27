@@ -1,32 +1,14 @@
 import { Server as SocketServer } from "socket.io";
-import { Server } from "http";
 
-import httpServerInstance from "./http.js";
-import { User, ChatMessage } from "./models/index";
+import httpServerInstance from "./http";
 import readYaml from "./utils/yaml/read-file";
-
-import { ChatMessageAttributes } from "./models/ChatMessage.js";
-import { UserAttributes } from "./models/User.js";
-
-interface RawChatMessage extends ChatMessageAttributes {
-  user?: UserAttributes;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface CleanChatMessage {
-  id: number;
-  User?: UserAttributes;
-  message: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { ChatMessage, User, ChatRoomUser } from "./models/";
 
 export class SocketIoInstance {
   private _io: SocketServer;
 
-  constructor(http: Server) {
-    this._io = new SocketServer(http, this.loadConfig());
+  constructor() {
+    this._io = new SocketServer(httpServerInstance.http, this.loadConfig());
   }
 
   public loadConfig(): any {
@@ -40,38 +22,73 @@ export class SocketIoInstance {
     this._io.on("connection", (socket) => {
       console.log("user connected.");
 
-      socket.on("sendMessage", async (data) => {
-        console.log("message received");
-        const { userId, message } = data;
-        const newMessage = await ChatMessage.create({ userId, message });
+      // Handle user joining a chat room
+      socket.on("joinRoom", async ({ userId, chatRoomId }) => {
+        console.log(`user ${userId} attempting to join room ${chatRoomId}`);
+
+        const isMember = await ChatRoomUser.findOne({
+          where: { userId, chatRoomId },
+        });
+
+        if (!isMember) {
+          console.error(`user ${userId} is not a member of room ${chatRoomId}`);
+          socket.emit("error", {
+            message: "you are not a member of this room.",
+          });
+          return;
+        }
+
+        socket.join(`room_${chatRoomId}`);
+        socket.emit("joinedRoom", { chatRoomId });
+        console.log(`user ${userId} joined the room ${chatRoomId}`);
+      });
+
+      // Handle sending a message
+      socket.on("sendMessage", async ({ userId, chatRoomId, message }) => {
+        console.log(`message received in room ${chatRoomId}: ${message}`);
+
+        const isMember = await ChatRoomUser.findOne({
+          where: { userId, chatRoomId },
+        });
+
+        if (!isMember) {
+          console.error(`user ${userId} is not a member of room ${chatRoomId}`);
+          socket.emit("error", {
+            message: "you are not a member of this room.",
+          });
+          return;
+        }
+
+        const newMessage = await ChatMessage.create({
+          chatRoomId,
+          senderId: userId,
+          content: message,
+        });
+
         const options = {
           include: { model: User, attributes: ["id", "username", "color"] },
         };
-        const foundMessage: RawChatMessage | null = await ChatMessage.findByPk(
-          newMessage.id,
-          options
-        );
+
+        const foundMessage = await ChatMessage.findByPk(newMessage.id, options);
+
         if (!foundMessage) return;
-        const cleanMessage = this.messageCleaner(foundMessage);
-        this._io.emit("newMessage", cleanMessage);
+
+        this._io.to(`room_${chatRoomId}`).emit("newMessage", foundMessage);
       });
 
+      // Handle user leaving chat room
+      socket.on("leaveRoom", ({ chatRoomId }) => {
+        socket.leave(`room_${chatRoomId}`);
+        console.log(`user ${socket.id} left room ${chatRoomId}`);
+      });
+
+      // Handle user diconnection
       socket.on("disconnect", () => {
-        console.log("a user disconnected: ", socket.id);
+        console.log(`user disconnected: ${socket.id}`);
       });
     });
   }
-
-  private messageCleaner(rawMessage: RawChatMessage): CleanChatMessage {
-    return {
-      id: rawMessage.id,
-      User: rawMessage.user,
-      message: rawMessage.message,
-      createdAt: rawMessage.createdAt,
-      updatedAt: rawMessage.updatedAt,
-    };
-  }
 }
 
-const socketIoInstance = new SocketIoInstance(httpServerInstance.http);
+const socketIoInstance = new SocketIoInstance();
 export default socketIoInstance;

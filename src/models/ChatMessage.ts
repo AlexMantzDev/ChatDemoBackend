@@ -1,10 +1,14 @@
 import { DataTypes, Model, Optional } from "sequelize";
-import { sequelize } from "../utils/db/connect";
+import sequelizeInstance from "../sequelize";
+import ChatRoom from "./ChatRoom";
 
-export interface ChatMessageAttributes {
+const sequelize = sequelizeInstance.sequelize;
+
+interface ChatMessageAttributes {
   id: number;
-  userId: number;
-  message: string;
+  chatRoomId: number;
+  senderId: number;
+  content: string;
 }
 
 interface ChatMessageCreationAttributes
@@ -15,8 +19,9 @@ class ChatMessage
   implements ChatMessageAttributes
 {
   public id!: number;
-  public userId!: number;
-  public message!: string;
+  public chatRoomId!: number;
+  public senderId!: number;
+  public content!: string;
 
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
@@ -29,11 +34,20 @@ ChatMessage.init(
       primaryKey: true,
       autoIncrement: true,
     },
-    userId: {
+    chatRoomId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: ChatRoom,
+        key: "id",
+      },
+      onDelete: "CASCADE",
+    },
+    senderId: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    message: {
+    content: {
       type: DataTypes.STRING,
       allowNull: false,
     },
@@ -41,6 +55,7 @@ ChatMessage.init(
   {
     sequelize,
     modelName: "ChatMessage",
+    tableName: "ChatMessages",
   }
 );
 

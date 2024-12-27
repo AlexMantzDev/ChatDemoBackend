@@ -3,7 +3,7 @@ import {
   createStreamKey,
   replaceStreamKey,
   verifyStreamKey,
-} from "../controllers/users.controller";
+} from "../controllers/stream-key.controller";
 
 const Router = express.Router();
 

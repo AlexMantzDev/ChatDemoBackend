@@ -1,8 +1,31 @@
-import { sequelize } from "../utils/db/connect";
-import User from "./User";
+import sequelizeInstance from "../sequelize";
+import ChatRoom from "./ChatRoom";
 import ChatMessage from "./ChatMessage";
+import User from "./User";
+import ChatRoomUser from "./ChatRoomUser";
 
-User.hasMany(ChatMessage, { foreignKey: "userId" });
-ChatMessage.belongsTo(User, { foreignKey: "userId" });
+const sequelize = sequelizeInstance.sequelize;
 
-export { sequelize, User, ChatMessage };
+ChatRoom.belongsToMany(User, {
+  through: ChatRoomUser,
+  foreignKey: "chatRoomId",
+});
+
+User.belongsToMany(ChatRoom, {
+  through: ChatRoomUser,
+  foreignKey: "userId",
+});
+
+ChatRoom.hasMany(ChatMessage, {
+  foreignKey: "chatRoomId",
+});
+
+ChatMessage.belongsTo(ChatRoom, {
+  foreignKey: "chatRoomId",
+});
+
+ChatMessage.belongsTo(User, {
+  foreignKey: "senderId",
+});
+
+export { sequelize, ChatRoom, ChatMessage, User, ChatRoomUser };

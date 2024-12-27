@@ -2,9 +2,9 @@ import express, { Application } from "express";
 import cors from "cors";
 
 import authRoutes from "./routes/auth.routes";
-import messagesRoutes from "./routes/messages.routes";
 import readYaml from "./utils/yaml/read-file";
-import streamKeyRoutes from "./routes/users.routes";
+import streamKeyRoutes from "./routes/stream-key.routes";
+import chatRoomRoutes from "./routes/chatRoom.routes";
 
 require("dotenv").config();
 
@@ -22,10 +22,6 @@ export class ExpressInstance {
     return this._app;
   }
 
-  public set app(value: Application) {
-    this._app = value;
-  }
-
   private loadCorsConfig(): any {
     const config = readYaml();
     if (!config.cors)
@@ -34,13 +30,14 @@ export class ExpressInstance {
   }
 
   public initialize(): void {
+    console.log("initializing Express server...");
     // Middleware
     this._app.use(cors(this._corsConfig));
     this._app.use(express.json());
 
     // Routes
     this._app.use("/api/v1/auth", authRoutes);
-    this._app.use("/api/v1/messages", messagesRoutes);
+    this._app.use("/api/v1/chatrooms", chatRoomRoutes);
     this._app.use("/api/v1/stream-key", streamKeyRoutes);
     // Error handling middleware
     this._app.use(this.errorHandler);
